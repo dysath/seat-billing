@@ -1,0 +1,30 @@
+{
+    "name": "denngarr/seat-billing",
+    "description": "Plugin to assist with corp/alliance billing statements",
+    "type": "seat-plugin",
+    "license": "GPL-2.0-only",
+    "authors": [
+        {
+            "name": "Denngarr B'tarn",
+            "email": "ed.stafford@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "autoload": {
+        "psr-4": {
+            "Denngarr\\Seat\\Billing\\": "src/"
+        }
+    },
+     "extra": {
+        "laravel": {
+            "providers": [
+                "Denngarr\\Seat\\Billing\\BillingServiceProvider"
+            ]
+        }
+    },
+    "require": {
+        "eveseat/services": "^3.0",
+        "eveseat/eveapi": "^3.0",
+        "eveseat/web": "^3.0"
+    }
+}
