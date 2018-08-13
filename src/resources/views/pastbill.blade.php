@@ -1,12 +1,14 @@
 @extends('web::layouts.grids.12')
 
-@section('title', trans('billing::billing.summary'))
-@section('page_header', trans('billing::billing.summary-live'))
+@section('title', trans('billing::billing.pastbill'))
+@section('page_header', trans('billing::billing.pastbill'))
 
 @section('full')
+<input type="hidden" id="year" value="{{ $year }}">
+<input type="hidden" id="month" value="{{ $month }}">
 <div class="box box-success box-solid">
     <div class="box-body">
-    <h4>Previous Bills</h4>
+    <h4>{{ trans('billing::billing.previousbill') }}</h4>
     @foreach($dates->chunk(3) as $date)
       <div class="">
         @foreach ($date as $yearmonth)
@@ -16,11 +18,9 @@
     @endforeach
     </div>
 </div>
+
 <div class="box box-success box-solid">
     <div class="box-body">
-    <div>
-    <h4>Current Live Numbers</h4>
-    </div>
     <div class="nav-tabs-custom">
         <ul class="nav nav-tabs">
             <li class="active"><a href="#tab1" data-toggle="tab">{{ trans('billing::billing.summary-corp-mining') }}</a></li>
@@ -37,20 +37,20 @@
                 <th>Adjusted Value</th>
                 <th>Tax Rate</th>
                 <th>Tax Owed</th>
-                <th>Registered Users</th>
+                <th>Paid</th>
             </tr>
             @foreach($summary as $corp => $val)
             <tr>
                 <td>{{ $corp }}</td>
-                <td>{{ number_format($val["mining"], 2) }}</td>
-                <td>{{ $val['oremodifier'] }}%</td>
-                <td>{{ number_format(($val["mining"] * ($val['oremodifier'] / 100)),2) }}</td>
-                <td>{{ $val['oretaxrate'] }}%</td>
-                <td>{{ number_format((($val["mining"] * ($val['oremodifier'] / 100)) * ($val['oretaxrate'] / 100)),2) }}</td>
-                @if ($val["characters"] > 0)
-                <td>{{ $val["tracking"] }} / {{ $val["characters"] }} ({{ round(($val["tracking"] / $val["characters"]) * 100)  }}%)</td>
+                <td>{{ number_format($val["mining_bill"], 2) }}</td>
+                <td>{{ $val['mining_modifier'] }}%</td>
+                <td>{{ number_format(($val["mining_bill"] * ($val["mining_modifier"] / 100)),2) }}</td>
+                <td>{{ $val['mining_taxrate'] }}%</td>
+                <td>{{ number_format((($val["mining_bill"] * ($val["mining_modifier"] / 100)) * ($val['mining_taxrate'] / 100)),2) }}</td>
+                @if ($val["mining_paid"] == true)
+                    <td><i class="fa fa-check-circle text-green"></i></td>
                 @else
-                <td>0 / 0 (0%)</td>
+                    <td><i class="fa fa-close text-red"></i></td>
                 @endif
             @endforeach
             </table>
@@ -62,19 +62,20 @@
                 <th>Total Bounties</th>
                 <th>Tax Rate</th>
                 <th>Tax Owed</th>
-                <th>Registered Users</th>
+                <th>Paid</th>
             </tr>
             @foreach($summary as $corp => $val)
             <tr>
                 <td>{{ $corp }}</td>
-                <td>{{ number_format($val["bounty"], 2) }}</td>
-                <td>{{ $val['bountytaxrate'] }}%</td>
-                <td>{{ number_format(($val["bounty"] * ($val['bountytaxrate'] / 100)),2) }}</td>
-                @if ($val["characters"] > 0)
-                <td>{{ $val["tracking"] }} / {{ $val["characters"] }} ({{ round(($val["tracking"] / $val["characters"]) * 100)  }}%)</td>
+                <td>{{ number_format($val["pve_bill"], 2) }}</td>
+                <td>{{ $val['pve_taxrate'] }}%</td>
+                <td>{{ number_format(($val["pve_bill"] * ($val['pve_taxrate'] / 100)),2) }}</td>
+                @if ($val["pve_paid"] == true)
+                    <td><i class="fa fa-check-circle text-green"></i></td>
                 @else
-                <td>0 / 0 (0%)</td>
+                    <td><i class="fa fa-close text-red"></i></td>
                 @endif
+                    
             </tr>
             @endforeach
             </table>
@@ -83,7 +84,7 @@
             <select class="select" id="corpspinner">
                 <option disabled selected value="0">Please Choose a Corp</option>
                 @foreach($summary as $corp => $val)
-                <option value="{{ $val['id'] }}">{{ $corp }}</option>
+                <option value="{{ $val['id'] }}">{{ $val['name'] }}</option>
                 @endforeach
             </select>
             <table class="table datatable compact table-condensed table-hover table-responsive table-striped" id='indivmining'>
@@ -91,6 +92,7 @@
               <tr>
                   <th>Character Name</th>
                   <th>Mining Amount</th>
+                  <th>Market Modifier</th>
                   <th>Mining Tax</th>
                   <th>Tax Due</th>
               </tr>
@@ -114,11 +116,14 @@ $('#corpspinner').change( function () {
 
     $('#indivmining').find('tbody').empty();
     id = $('#corpspinner').find(":selected").val();
+    year = $('#year').val();
+    month = $('#month').val();
+
     if (id > 0) {
     $.ajax({
         headers: function () {
         },
-        url: "/billing/getindbilling/" + id,
+        url: "/billing/getindpastbilling/" + id + "/" + year + "/" + month,
         type: "GET",
         dataType: 'json',
         timeout: 10000
@@ -127,8 +132,10 @@ $('#corpspinner').change( function () {
 console.log(result);
             body = "";
             for (var chars in result) {
-                body = body + "<tr><td><a href=''><span rel='id-to-name'>" + chars + "</span></a></td><td>Amount:  " + (new Intl.NumberFormat('en-US').format(result[chars].amount));
-                body = body + "<td>" + (result[chars].taxrate * 100) + "%</td><td>" + (new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(result[chars].amount * result[chars].taxrate)) + "</tr>";
+                body = body + "<tr><td><a href=''><span rel='id-to-name'>" + result[chars].character_id + "</span></a></td><td>" + (new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(result[chars].mining_bill)) + "</td>";
+                body = body + "<td>" + (result[chars].mining_modifier) + "%</td>";
+                body = body + "<td>" + (result[chars].mining_taxrate) + "%</td>";
+                body = body + "<td>" + (new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(result[chars].mining_bill * (result[chars].mining_modifier / 100) * (result[chars].mining_taxrate / 100))) + " ISK</td></tr>";
             }
               
             $('#indivmining').find('tbody').append(body);

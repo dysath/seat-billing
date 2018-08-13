@@ -3,7 +3,7 @@
 return [
     'billing' => [
         'view',
-        'create'
+        'settings'
     ]
 ];
 

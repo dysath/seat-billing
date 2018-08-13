@@ -3,6 +3,7 @@
 namespace Denngarr\Seat\Billing;
 
 use Illuminate\Support\ServiceProvider;
+use Denngarr\Seat\Billing\Commands\BillingUpdate;
 
 class BillingServiceProvider extends ServiceProvider
 {
@@ -19,6 +20,7 @@ class BillingServiceProvider extends ServiceProvider
         $this->add_views();
         $this->add_publications();
         $this->add_translations();
+        $this->add_commands();
     }
 
     /**
@@ -70,7 +72,10 @@ class BillingServiceProvider extends ServiceProvider
         ]);
     }
 
-    private function addCommands()
+    private function add_commands()
     {
+        $this->commands([
+            BillingUpdate::class,
+        ]);
     }
 }
