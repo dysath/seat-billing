@@ -1,4 +1,4 @@
-<?PHP
+<?php
 
 namespace Denngarr\Seat\Billing\Http\Controllers;
 
@@ -15,11 +15,12 @@ use Seat\Web\Models\User;
 use Denngarr\Seat\Billing\Validation\ValidateSettings;
 use Denngarr\Seat\Billing\Helpers\BillingHelper;
 
-class BillingController extends Controller {
-
+class BillingController extends Controller
+{
     use MiningLedger, Ledger, CharacterLedger, BillingHelper;
 
-    public function getLiveBillingView() {
+    public function getLiveBillingView()
+    {
         $summary = [];
    
         $corporations = $this->getCorporations();
@@ -28,14 +29,14 @@ class BillingController extends Controller {
             $summary[$corporation->name]['mining'] = $this->getMiningTotal($corporation->corporation_id, date('Y'), date('n'));
             $summary[$corporation->name]['tracking'] = 0;
 
-            $tracking = $this->getTrackingMembers($corporation->corporation_id); 
+            $tracking = $this->getTrackingMembers($corporation->corporation_id);
             $summary[$corporation->name]['characters'] = count($tracking);
              
             foreach ($tracking as $member) {
                 if ($member->key_ok) {
                     $summary[$corporation->name]['tracking']++;
                 }
-            } 
+            }
             if (!$corporation->tax_rate) {
                 $summary[$corporation->name]['corptaxrate'] = .10;
             } else {
@@ -63,8 +64,8 @@ class BillingController extends Controller {
         return view('billing::summary', compact('summary', 'dates'));
     }
 
-    private function getCorporations() {
-
+    private function getCorporations()
+    {
         if (auth()->user()->hasSuperUser()) {
             $corporations = CorporationInfo::all();
         } else {
@@ -78,13 +79,13 @@ class BillingController extends Controller {
         return $corporations;
     }
 
-    public function getBillingSettings() {
-
+    public function getBillingSettings()
+    {
         return view('billing::settings');
     }
 
-    public function saveBillingSettings(ValidateSettings $request) {
-
+    public function saveBillingSettings(ValidateSettings $request)
+    {
         setting(["oremodifier", $request->oremodifier], true);
         setting(["oretaxrate", $request->oretaxrate], true);
         setting(["bountytaxrate", $request->bountytaxrate], true);
@@ -96,48 +97,49 @@ class BillingController extends Controller {
         return view('billing::settings');
     }
 
-    public function getUserBilling($corporation_id) {
+    public function getUserBilling($corporation_id)
+    {
+        $summary = $this->getMainsBilling($corporation_id);
 
-      $summary = $this->getMainsBilling($corporation_id);
-
-      return $summary;
+        return $summary;
     }
 
-    public function getPastUserBilling($corporation_id, $year, $month) {
+    public function getPastUserBilling($corporation_id, $year, $month)
+    {
+        $summary = $this->getPastMainsBillingByMonth($corporation_id, $year, $month);
 
-      $summary = $this->getPastMainsBillingByMonth($corporation_id, $year, $month);
-
-      return $summary;
+        return $summary;
     }
 
-    public function previousBillingCycle($year, $month) {
+    public function previousBillingCycle($year, $month)
+    {
         $summary = [];
 
         $corporations = $this->getCorporations();
 
-        foreach($corporations as $corporation) {
-           $summary[$corporation->corporation_id]['id'] = $corporation->corporation_id;
-           $summary[$corporation->corporation_id]['name'] = $corporation->name;
+        foreach ($corporations as $corporation) {
+            $summary[$corporation->corporation_id]['id'] = $corporation->corporation_id;
+            $summary[$corporation->corporation_id]['name'] = $corporation->name;
 
-           $bill = $this->getCorporationBillByMonth($corporation->corporation_id, $year, $month);
+            $bill = $this->getCorporationBillByMonth($corporation->corporation_id, $year, $month);
 
-           $summary[$corporation->corporation_id]['pve_bill'] = $bill->pve_bill;
-           $summary[$corporation->corporation_id]['mining_bill'] = $bill->mining_bill;
-           $summary[$corporation->corporation_id]['pve_taxrate'] = $bill->pve_taxrate;
-           $summary[$corporation->corporation_id]['mining_taxrate'] = $bill->mining_taxrate;
-           $summary[$corporation->corporation_id]['mining_modifier'] = $bill->mining_modifier;
-           if (count($this->getPaidBillFromJournal($corporation->corporation_id, ($bill->pve_bill * ($bill->pve_taxrate / 100)), $month, $year)) === 0 ) {
-               $summary[$corporation->corporation_id]['pve_paid'] = false;
-           } else {
-               $summary[$corporation->corporation_id]['pve_paid'] = true;
-           }
+            $summary[$corporation->corporation_id]['pve_bill'] = $bill->pve_bill;
+            $summary[$corporation->corporation_id]['mining_bill'] = $bill->mining_bill;
+            $summary[$corporation->corporation_id]['pve_taxrate'] = $bill->pve_taxrate;
+            $summary[$corporation->corporation_id]['mining_taxrate'] = $bill->mining_taxrate;
+            $summary[$corporation->corporation_id]['mining_modifier'] = $bill->mining_modifier;
+            if (count($this->getPaidBillFromJournal($corporation->corporation_id, ($bill->pve_bill * ($bill->pve_taxrate / 100)), $month, $year)) === 0) {
+                $summary[$corporation->corporation_id]['pve_paid'] = false;
+            } else {
+                $summary[$corporation->corporation_id]['pve_paid'] = true;
+            }
 
-           if (count($this->getPaidBillFromJournal($corporation->corporation_id, ($bill->mining_bill * ($bill->mining_modifier / 100) * ($bill->mining_taxrate / 100)), $month, $year)) === 0) {
-               $summary[$corporation->corporation_id]['mining_paid'] = false;
-           } else {
-               $summary[$corporation->corporation_id]['mining_paid'] = true;
-           }
-        }        
+            if (count($this->getPaidBillFromJournal($corporation->corporation_id, ($bill->mining_bill * ($bill->mining_modifier / 100) * ($bill->mining_taxrate / 100)), $month, $year)) === 0) {
+                $summary[$corporation->corporation_id]['mining_paid'] = false;
+            } else {
+                $summary[$corporation->corporation_id]['mining_paid'] = true;
+            }
+        }
         
         
         $dates = $this->getCorporationBillingMonths($corporations->pluck('corporation_id')->toArray());

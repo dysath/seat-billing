@@ -1,4 +1,4 @@
-<?PHP
+<?php
 
 namespace Denngarr\Seat\Billing\Commands;
 
@@ -15,7 +15,6 @@ use Denngarr\Seat\Billing\Helpers\BillingHelper;
 
 class BillingUpdate extends Command
 {
-
     use BillingHelper, Ledger, MiningLedger;
 
     /**
@@ -88,8 +87,7 @@ class BillingUpdate extends Command
                     $bill->mining_modifier = $rates['modifier'];
                     $bill->save();
                 }
-            
-            } 
+            }
         }
     }
 }

@@ -11,6 +11,4 @@ class CharacterBill extends Model
     protected $table = 'seat_billing_character_bill';
 
     protected $fillable = ['id', 'character_id', 'month', 'year', 'mining_bill', 'mining_taxrate'];
-
 }
-

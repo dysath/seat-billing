@@ -54,7 +54,9 @@ class BillingServiceProvider extends ServiceProvider
     public function register()
     {
         $this->mergeConfigFrom(
-            __DIR__ . '/Config/billing.config.php', 'billing.config');
+            __DIR__ . '/Config/billing.config.php',
+            'billing.config'
+        );
 
         $this->mergeConfigFrom(
             __DIR__ . '/Config/billing.sidebar.php',
@@ -62,7 +64,9 @@ class BillingServiceProvider extends ServiceProvider
         );
 
         $this->mergeConfigFrom(
-            __DIR__ . '/Config/billing.permissions.php', 'web.permissions');
+            __DIR__ . '/Config/billing.permissions.php',
+            'web.permissions'
+        );
     }
 
     public function add_publications()

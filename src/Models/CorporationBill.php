@@ -11,6 +11,4 @@ class CorporationBill extends Model
     protected $table = 'seat_billing_corp_bill';
 
     protected $fillable = ['id', 'corporation_id', 'month', 'year', 'pve_bill', 'mining_bill', 'pve_taxrate', 'mining_taxrate', 'mining_modifier'];
-
 }
-

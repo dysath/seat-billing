@@ -50,4 +50,3 @@ class CreateBillingTables extends Migration
         Schema::dropIfExists('seat_billing_character_bill');
     }
 }
-

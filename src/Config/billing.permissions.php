@@ -1,4 +1,4 @@
-<?PHP
+<?php
 
 return [
     'billing' => [
@@ -6,4 +6,3 @@ return [
         'settings'
     ]
 ];
-

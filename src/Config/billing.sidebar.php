@@ -1,4 +1,4 @@
-<?PHP
+<?php
 
 return [
         'billing' => [
@@ -27,4 +27,3 @@ return [
         ],
         ],
 ];
-
