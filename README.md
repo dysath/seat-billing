@@ -18,5 +18,9 @@ php artisan up
 
 And now, when you log into 'Seat', you should see a 'Seat IRS' link on the left.
 
+
+You should schedule a job to run Monthly called 'billing:update'.  This will calculate the bills for the corps each month.
+
+
 Good luck, and Happy Hunting!!  o7
 
