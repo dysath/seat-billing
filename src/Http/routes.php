@@ -17,6 +17,11 @@ Route::group([
             'uses' => 'BillingController@getBillingSettings',
             'middleware' => 'bouncer:billing.settings'
         ]);
+        Route::post('/settings', [
+            'as'   => 'billing.savesettings',
+            'uses' => 'BillingController@saveBillingSettings',
+            'middleware' => 'bouncer:billing.settings'
+        ]);
         Route::get('/getindbilling/{id}', [
             'as'   => 'billing.getindbilling',
             'uses' => 'BillingController@getUserBilling',
