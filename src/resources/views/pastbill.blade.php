@@ -41,7 +41,7 @@
             </tr>
             @foreach($summary as $corp => $val)
             <tr>
-                <td>{{ $corp }}</td>
+                <td>{{ $val["name"] }}</td>
                 <td>{{ number_format($val["mining_bill"], 2) }}</td>
                 <td>{{ $val['mining_modifier'] }}%</td>
                 <td>{{ number_format(($val["mining_bill"] * ($val["mining_modifier"] / 100)),2) }}</td>
@@ -66,7 +66,7 @@
             </tr>
             @foreach($summary as $corp => $val)
             <tr>
-                <td>{{ $corp }}</td>
+                <td>{{ $val["name"] }}</td>
                 <td>{{ number_format($val["pve_bill"], 2) }}</td>
                 <td>{{ $val['pve_taxrate'] }}%</td>
                 <td>{{ number_format(($val["pve_bill"] * ($val['pve_taxrate'] / 100)),2) }}</td>
@@ -115,6 +115,8 @@
 table = $('#indivmining').DataTable({
     paging: false,
 });
+
+ids_to_names();
 
 $('#corpspinner').change( function () {
 
