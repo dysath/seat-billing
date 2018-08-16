@@ -87,7 +87,7 @@
                 <option value="{{ $val['id'] }}">{{ $val['name'] }}</option>
                 @endforeach
             </select>
-            <table class="table datatable compact table-condensed table-hover table-responsive table-striped" id='indivmining'>
+            <table class="table compact table-condensed table-hover table-responsive table-striped" id='indivmining'>
             <thead>
               <tr>
                   <th>Character Name</th>
@@ -112,6 +112,10 @@
 
 <script type="application/javascript">
 
+table = $('#indivmining').DataTable({
+    paging: false,
+});
+
 $('#corpspinner').change( function () {
 
     $('#indivmining').find('tbody').empty();
@@ -129,16 +133,13 @@ $('#corpspinner').change( function () {
         timeout: 10000
     }).done( function (result) {
         if (result) {
-console.log(result);
-            body = "";
+            table.clear();
             for (var chars in result) {
-                body = body + "<tr><td><a href=''><span rel='id-to-name'>" + result[chars].character_id + "</span></a></td><td>" + (new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(result[chars].mining_bill)) + "</td>";
-                body = body + "<td>" + (result[chars].mining_modifier) + "%</td>";
-                body = body + "<td>" + (result[chars].mining_taxrate) + "%</td>";
-                body = body + "<td>" + (new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(result[chars].mining_bill * (result[chars].mining_modifier / 100) * (result[chars].mining_taxrate / 100))) + " ISK</td></tr>";
+                table.row.add(["<a href=''><span rel='id-to-name'>" + result[chars].character_id + "</span></a>", "Amount:  " + (new Intl.NumberFormat('en-US').format(result[chars].mining_bill)),
+                               (result[chars].mining_modifier) + "%", (result[chars].mining_taxrate) + "%",
+                               (new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(result[chars].mining_bill * (result[chars].mining_modifier / 100) * (result[chars].mining_taxrate / 100))) + " ISK"]);
             }
-              
-            $('#indivmining').find('tbody').append(body);
+            table.draw();
             ids_to_names();
         }
     });
