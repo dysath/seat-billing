@@ -19,23 +19,15 @@ trait BillingHelper
 
     public function getCharacterBilling($character_id, $year, $month)
     {
-        $ledger = CharacterMining::select('character_minings.character_id', 'year', 'month', 'type_id', 'quantity')
-        ->join('corporation_member_trackings', 'corporation_member_trackings.character_id', 'character_minings.character_id')
-        ->where('character_minings.character_id', $character_id)
-        ->where('year', $year)
-        ->where('month', $month)
-        ->get();
+        $ledger = CharacterMining::select(DB::raw('SUM(character_minings.quantity * market_prices.average_price) as amounts'))
+            ->join('corporation_member_trackings', 'corporation_member_trackings.character_id', 'character_minings.character_id')
+            ->join('market_prices', 'character_minings.type_id', 'market_prices.type_id')
+            ->where('character_minings.character_id', $character_id)
+            ->where('year', $year)
+            ->where('month', $month)
+            ->first();
 
-        $ledger->groupBy('character_id')
-        ->map(function ($row) {
-            $row->quantity = $row->sum('quantity');
-            $row->volume = $row->sum('volume');
-            $row->amount = $row->sum('amount');
-
-            return $row;
-        })->flatten();
-
-        return $ledger->sum('amount');
+        return $ledger->amounts;
     }
 
     public function getCharacterTaxRate($character_id)
