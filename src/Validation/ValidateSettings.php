@@ -20,7 +20,7 @@ class ValidateSettings extends FormRequest
             'ioremodifier'   => 'min:0|max:200',
             'ioretaxrate'    => 'min:0|max:200',
             'ibountytaxrate' => 'min:0|max:200',
-            'irate'          => 'min:0|max:200'
+            'irate'          => 'min:0|max:200',
         ];
     }
 }

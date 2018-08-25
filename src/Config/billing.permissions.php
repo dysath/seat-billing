@@ -3,6 +3,6 @@
 return [
     'billing' => [
         'view',
-        'settings'
-    ]
+        'settings',
+    ],
 ];
