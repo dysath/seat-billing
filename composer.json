@@ -15,7 +15,7 @@
             "Denngarr\\Seat\\Billing\\": "src/"
         }
     },
-     "extra": {
+    "extra": {
         "laravel": {
             "providers": [
                 "Denngarr\\Seat\\Billing\\BillingServiceProvider"

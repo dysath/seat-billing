@@ -14,9 +14,7 @@ class BillingServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //$this->addCommands();
         $this->add_routes();
-        // $this->add_middleware($router);
         $this->add_views();
         $this->add_publications();
         $this->add_translations();
@@ -72,7 +70,7 @@ class BillingServiceProvider extends ServiceProvider
     public function add_publications()
     {
         $this->publishes([
-            __DIR__ . '/database/migrations/' => database_path('migrations')
+            __DIR__ . '/database/migrations/' => database_path('migrations'),
         ]);
     }
 

@@ -3,6 +3,7 @@
 return [
 
     // General
+    'settings'                             => 'Settings',
     'summary'                              => 'Billing Summary',
     'summary-live'                         => 'Current Billing Summary',
     'summary-corp-mining'                  => 'Corporation Mining',
