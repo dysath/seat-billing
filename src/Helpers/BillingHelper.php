@@ -17,46 +17,25 @@ trait BillingHelper
 {
     use Members;
 
-    public function getCharacterBilling($character_id, $year, $month)
+    public function getCharacterBilling($corporation_id, $year, $month)
     {
-        $ledger = CharacterMining::select(DB::raw('SUM(character_minings.quantity * market_prices.average_price) as amounts'))
-            ->join('corporation_member_trackings', 'corporation_member_trackings.character_id', 'character_minings.character_id')
+        $ledger = CharacterMining::select('user_settings.value', DB::raw('SUM(character_minings.quantity * market_prices.average_price) as amounts'))
             ->join('market_prices', 'character_minings.type_id', 'market_prices.type_id')
-            ->where('character_minings.character_id', $character_id)
+            ->join('corporation_member_trackings', 'corporation_member_trackings.character_id', 'character_minings.character_id')
+            ->join('character_infos', 'character_infos.character_id', 'character_minings.character_id')
+            ->join('users', 'users.id', 'character_infos.character_id')
+            ->join('user_settings', function ($join) {
+                $join->on('users.group_id', 'user_settings.group_id')
+                    ->where('user_settings.name', 'main_character_id');
+            })
+            ->where('character_infos.corporation_id', $corporation_id)
             ->where('year', $year)
             ->where('month', $month)
-            ->first();
+            ->groupby('user_settings.value')
+            ->get();
 
-        return $ledger->amounts;
-    }
-
-    public function getCharacterTaxRate($character_id)
-    {
-        $registered = 0;
-        $character = CharacterInfo::where('character_id', $character_id)->first();
-        $corp = CorporationInfo::where('corporation_id', $character->corporation_id)->first();
-
-        if ($corp != null) {
-            $tracking = $this->getTrackingMembers($corp->corporation_id);
-
-            foreach ($tracking as $member) {
-                if ($member->key_ok) {
-                    $registered++;
-                }
-            }
-
-            $total = count($tracking) | 1;
-
-            $taxrate = setting('ioretaxrate', true);
-
-            if (($registered / $total) < (setting('irate', true) / 100)) {
-                $taxrate = setting('oretaxrate', true);
-            }
-
-            return ($taxrate / 100);
-        }
-
-        return 0;
+//dd($ledger);
+        return $ledger;
     }
 
     private function getTrackingMembers($corporation_id)
@@ -67,38 +46,20 @@ trait BillingHelper
     public function getMainsBilling($corporation_id)
     {
         $summary = [];
-        $main_ids = UserSetting::where('name', 'main_character_id')
-            ->select('value')
-            ->get()
-            ->pluck('value')
-            ->toArray();
+        $taxrates = $this->getCorporateTaxRate($corporation_id);
 
-        foreach ($main_ids as $main_id) {
-            $main = User::find($main_id);
+        $ledger = $this->getCharacterBilling($corporation_id, date('Y'), date('n') - 1);
 
-            if (is_null($main))
-                continue;
-
-            $characters = $main->associatedCharacterIds()->toArray();
-
-            foreach ($characters as $character_id) {
-                $char = CharacterInfo::find($character_id);
-
-                if (is_null($char) || $char->corporation_id != $corporation_id)
-                    continue;
-
-                if (!isset($summary[$main->character_id])) {
-                    $summary[$main->character_id]['amount'] = 0;
-                }
-
-                $amount = $this->getCharacterBilling($character_id, date('Y'), date('n') - 1);
-
-                $summary[$main->character_id]['amount'] += $amount;
-                $summary[$main->character_id]['id'] = $character_id;
-                $summary[$main->character_id]['taxrate'] = $this->getCharacterTaxRate($character_id);
+        foreach ($ledger as $entry) {
+            if (!isset($summary[$entry->value])) {
+                $summary[$entry->value]['amount'] = 0;
             }
-        }
 
+            $summary[$entry->value]['amount'] += $entry->amounts;
+            $summary[$entry->value]['id'] = $entry->value;
+            $summary[$entry->value]['taxrate'] = $taxrates['taxrate'] / 100;
+            $summary[$entry->value]['modifier'] = $taxrates['modifier'] / 100;
+        }
         return $summary;
     }
 

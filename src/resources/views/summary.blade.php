@@ -105,6 +105,7 @@
           <tr>
             <th>Character Name</th>
             <th>Mining Amount</th>
+            <th>Mining Tax Modifier</th>
             <th>Mining Tax</th>
             <th>Tax Due</th>
           </tr>
@@ -140,8 +141,11 @@
                   if (result) {
                       table.clear();
                       for (var chars in result) {
-                          table.row.add(["<a href=''><span rel='id-to-name'>" + chars + "</span></a>", (new Intl.NumberFormat('en-US').format(result[chars].amount)),
-                              (result[chars].taxrate * 100) + "%", (new Intl.NumberFormat('en-US', {maximumFractionDigits: 2}).format(result[chars].amount * result[chars].taxrate))]);
+                          table.row.add(["<a href=''><span rel='id-to-name'>" + chars + "</span></a>", 
+                              (new Intl.NumberFormat('en-US').format(result[chars].amount)),
+                              (result[chars].modifier * 100) + "%",
+                              (result[chars].taxrate * 100) + "%", 
+                              (new Intl.NumberFormat('en-US', {maximumFractionDigits: 2}).format(result[chars].amount * result[chars].taxrate * result[chars].modifier))]);
                       }
                       table.draw();
                       ids_to_names();
