@@ -21,14 +21,15 @@ trait BillingHelper
     {
         $ledger = CharacterMining::select('user_settings.value', DB::raw('SUM(character_minings.quantity * market_prices.average_price) as amounts'))
             ->join('market_prices', 'character_minings.type_id', 'market_prices.type_id')
-            ->join('corporation_member_trackings', 'corporation_member_trackings.character_id', 'character_minings.character_id')
-            ->join('character_infos', 'character_infos.character_id', 'character_minings.character_id')
-            ->join('users', 'users.id', 'character_infos.character_id')
+            ->join('corporation_member_trackings', function($join) use ($corporation_id) {
+                 $join->on('corporation_member_trackings.character_id', 'character_minings.character_id')
+                     ->where('corporation_member_trackings.corporation_id', $corporation_id);
+            })
+            ->join('users', 'users.id', 'corporation_member_trackings.character_id')
             ->join('user_settings', function ($join) {
-                $join->on('users.group_id', 'user_settings.group_id')
+                $join->on('user_settings.group_id', 'users.group_id')
                     ->where('user_settings.name', 'main_character_id');
             })
-            ->where('character_infos.corporation_id', $corporation_id)
             ->where('year', $year)
             ->where('month', $month)
             ->groupby('user_settings.value')
@@ -48,7 +49,7 @@ trait BillingHelper
         $summary = [];
         $taxrates = $this->getCorporateTaxRate($corporation_id);
 
-        $ledger = $this->getCharacterBilling($corporation_id, date('Y'), date('n') - 1);
+        $ledger = $this->getCharacterBilling($corporation_id, date('Y'), date('n'));
 
         foreach ($ledger as $entry) {
             if (!isset($summary[$entry->value])) {
