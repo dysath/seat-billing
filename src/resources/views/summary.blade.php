@@ -30,7 +30,16 @@
     </ul>
     <div class="tab-content">
       <div class="tab-pane active" id="tab1">
-        <table class="table table-striped">
+        <div class="col-md-12">
+          <select class="form-control" style="width: 25%" id="alliancespinner">
+            <option selected disabled>Choose an Alliance</option>
+            <option value="0">All Alliances</option>
+            @foreach($alliances as $alliance => $val)
+              <option value="{{ $alliance }}">{{ $val["name"] }}</option>
+            @endforeach
+          </select>
+        </div>
+        <table class="table table-striped" id='livenumbers'>
           <thead>
           <tr>
             <th>Corporation</th>
@@ -64,7 +73,7 @@
         </table>
       </div>
       <div class="tab-pane" id="tab2">
-        <table class="table table-striped">
+        <table class="table table-striped" id="livepve">
           <thead>
           <tr>
             <th>Corporation</th>
@@ -94,12 +103,14 @@
         </table>
       </div>
       <div class="tab-pane" id="tab3">
-        <select class="select" id="corpspinner">
-          <option disabled selected value="0">Please Choose a Corp</option>
-          @foreach($summary as $corp => $val)
-            <option value="{{ $val['id'] }}">{{ $corp }}</option>
-          @endforeach
-        </select>
+        <div class="col-md-6">
+          <select class="form-control" style="width: 50%" id="corpspinner">
+            <option disabled selected value="0">Please Choose a Corp</option>
+            @foreach($summary as $corp => $val)
+              <option value="{{ $val['id'] }}">{{ $corp }}</option>
+            @endforeach
+          </select>
+        </div>
         <table class="table compact table-condensed table-hover table-responsive table-striped" id='indivmining'>
           <thead>
           <tr>
@@ -157,5 +168,13 @@
       $(document).ready(function () {
           $('#corpspinner').select2();
       });
+
+      $('#alliancespinner').change(function () {
+          id = $('#alliancespinner').find(":selected").val();
+              window.location.href = '/billing/alliance/' + id;
+      });
+
+      $('#livenumbers').DataTable();
+      $('#livepve').DataTable();
   </script>
 @endpush

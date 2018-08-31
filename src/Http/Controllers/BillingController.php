@@ -3,6 +3,7 @@
 namespace Denngarr\Seat\Billing\Http\Controllers;
 
 use Seat\Web\Http\Controllers\Controller;
+use Seat\Eveapi\Models\Alliances\Alliance;
 use Seat\Eveapi\Models\Character\CharacterInfo;
 use Seat\Eveapi\Models\Corporation\CorporationInfo;
 use Seat\Services\Repositories\Character\MiningLedger as CharacterLedger;
@@ -15,14 +16,29 @@ class BillingController extends Controller
 {
     use MiningLedger, Ledger, CharacterLedger, BillingHelper;
 
-    public function getLiveBillingView()
+    public function getLiveBillingView($alliance_id = null)
     {
+        $alliances = [];
         $summary = [];
 
         $corporations = $this->getCorporations();
 
         foreach ($corporations as $corporation) {
+            $alliance = Alliance::find($corporation->alliance_id);
+
+            if ($alliance != null) {
+                $alliances[$alliance->alliance_id]['name'] = $alliance->name;
+            }
+        }
+
+        foreach ($corporations as $corporation) {
+
+            if (($alliance_id) && ($corporation->alliance_id != $alliance_id))
+              continue;
+
             $summary[$corporation->name]['id'] = $corporation->corporation_id;
+            $summary[$corporation->name]['alliance_id'] = $corporation->alliance_id;
+
             $summary[$corporation->name]['mining'] = $this->getMiningTotal($corporation->corporation_id, date('Y'), date('n'));
             $summary[$corporation->name]['tracking'] = 0;
 
@@ -60,7 +76,7 @@ class BillingController extends Controller
 
         $dates = $this->getCorporationBillingMonths($corporations->pluck('corporation_id')->toArray());
 
-        return view('billing::summary', compact('summary', 'dates'));
+        return view('billing::summary', compact('alliances', 'summary', 'dates'));
     }
 
     private function getCorporations()

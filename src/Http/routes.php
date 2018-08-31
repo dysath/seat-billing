@@ -13,6 +13,12 @@ Route::group([
             'middleware' => 'bouncer:billing.view'
         ]);
 
+        Route::get('/alliance/{alliance_id}', [
+            'as'   => 'billing.allianceview',
+            'uses' => 'BillingController@getLiveBillingView',
+            'middleware' => 'bouncer:billing.view'
+        ]);
+
         Route::get('/settings', [
             'as'   => 'billing.settings',
             'uses' => 'BillingController@getBillingSettings',
