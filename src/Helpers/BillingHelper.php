@@ -44,12 +44,19 @@ trait BillingHelper
         return $this->getCorporationMemberTracking($corporation_id);
     }
 
-    public function getMainsBilling($corporation_id)
+    public function getMainsBilling($corporation_id, $year = null, $month = null)
     {
+        if (is_null($year)) {
+           $year = date('Y');
+        }
+        if (is_null($month)) {
+           $month = date('n');
+        }
+     
         $summary = [];
         $taxrates = $this->getCorporateTaxRate($corporation_id);
 
-        $ledger = $this->getCharacterBilling($corporation_id, date('Y'), date('n'));
+        $ledger = $this->getCharacterBilling($corporation_id, $year, $month);
 
         foreach ($ledger as $entry) {
             if (!isset($summary[$entry->value])) {

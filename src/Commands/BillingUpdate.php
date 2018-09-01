@@ -68,7 +68,7 @@ class BillingUpdate extends Command
                 $bill->save();
             }
 
-            $summary = $this->getMainsBilling($corp->corporation_id);
+            $summary = $this->getMainsBilling($corp->corporation_id, $year, $month);
             $rates = $this->getCorporateTaxRate($corp->corporation_id);
 
             foreach ($summary as $character) {
