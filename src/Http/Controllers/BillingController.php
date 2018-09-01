@@ -134,11 +134,14 @@ class BillingController extends Controller
         $corporations = $this->getCorporations();
 
         foreach ($corporations as $corporation) {
-            $summary[$corporation->corporation_id]['id'] = $corporation->corporation_id;
-            $summary[$corporation->corporation_id]['name'] = $corporation->name;
 
             $bill = $this->getCorporationBillByMonth($corporation->corporation_id, $year, $month);
 
+            if (is_null($bill))
+                continue;
+
+            $summary[$corporation->corporation_id]['id'] = $corporation->corporation_id;
+            $summary[$corporation->corporation_id]['name'] = $corporation->name;
             $summary[$corporation->corporation_id]['pve_bill'] = $bill->pve_bill;
             $summary[$corporation->corporation_id]['mining_bill'] = $bill->mining_bill;
             $summary[$corporation->corporation_id]['pve_taxrate'] = $bill->pve_taxrate;
