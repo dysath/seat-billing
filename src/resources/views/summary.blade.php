@@ -10,9 +10,14 @@
     </div>
     <div class="box-body">
       @foreach($dates->chunk(3) as $date)
-        <div class="">
+        <div class="row ">
           @foreach ($date as $yearmonth)
-            <a href="{{ route('billing.pastbilling', ['year' => $yearmonth['year'], 'month' => $yearmonth['month']]) }}">{{ date('Y-M', mktime(0,0,0, $yearmonth['month'], 1, $yearmonth['year'])) }}</a>
+            <div class="col-xs-4">
+              <span class="text-bold">
+                <a href="{{ route('billing.pastbilling', ['year' => $yearmonth['year'], 'month' => $yearmonth['month']]) }}">
+                {{ date('Y-M', mktime(0,0,0, $yearmonth['month'], 1, $yearmonth['year'])) }}</a>
+              </span>
+            </div>
           @endforeach
         </div>
       @endforeach
