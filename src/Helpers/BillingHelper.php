@@ -88,12 +88,12 @@ trait BillingHelper
 
         $mining_taxrate = setting('ioretaxrate', true);
         $mining_modifier = setting('ioremodifier', true);
-        $pve_taxrate = setting('ipvetaxrate', true);
+        $pve_taxrate = setting('ibountytaxrate', true);
 
         if (($reg_chars / $total_chars) < (setting('irate', true) / 100)) {
             $mining_taxrate = setting('oretaxrate', true);
             $mining_modifier = setting('oremodifier', true);
-            $pve_taxrate = setting('pvetaxrate', true);
+            $pve_taxrate = setting('bountytaxrate', true);
         }
 
         return ['taxrate' => $mining_taxrate, 'modifier' => $mining_modifier, 'pve' => $pve_taxrate];

@@ -22,7 +22,7 @@ class BillingUpdate extends Command
      *
      * @var string
      */
-    protected $signature = 'billing:update';
+    protected $signature = 'billing:update {--F|force} {year?} {month?}';
 
     /**
      * The console command description.
@@ -39,6 +39,11 @@ class BillingUpdate extends Command
         $lastmonth = date('Y-n', strtotime('-1 month'));
         list($year, $month) = preg_split("/-/", $lastmonth, 2);
 
+        if (($this->argument('month')) && ($this->argument('year'))) {
+            $year = $this->argument('year');
+            $month = $this->argument('month');
+        } 
+
         // See if corps already have a bill.  If not, generate one.
 
         $corps = CorporationInfo::all();
@@ -48,7 +53,7 @@ class BillingUpdate extends Command
                 ->where('month', $month)
                 ->get();
 
-            if (count($bill) == 0) {
+            if ((count($bill) == 0) || ($this->option('force') == true)) {
                 if (!$corp->tax_rate) {
                     $corp_taxrate = .10;
                 } else {
@@ -64,7 +69,7 @@ class BillingUpdate extends Command
                 $bill->pve_bill = $this->getBountyTotal($corp->corporation_id, $year, $month) / $corp_taxrate;
                 $bill->mining_taxrate = $rates['taxrate'];
                 $bill->mining_modifier = $rates['modifier'];
-                $bill->pve_taxrate = $rates['pve'] | 10;
+                $bill->pve_taxrate = $rates['pve'];
                 $bill->save();
             }
 
