@@ -159,7 +159,6 @@ class BillingController extends Controller
             }
         }
 
-
         $dates = $this->getCorporationBillingMonths($corporations->pluck('corporation_id')->toArray());
 
         return view('billing::pastbill', compact('summary', 'dates', 'year', 'month'));

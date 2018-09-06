@@ -54,6 +54,11 @@ class BillingUpdate extends Command
                 ->get();
 
             if ((count($bill) == 0) || ($this->option('force') == true)) {
+                if ($this->option('force') == true) {
+                    CorporationBill::where('month', $month)
+                        ->where('year', $year)
+                        ->delete();
+                }
                 if (!$corp->tax_rate) {
                     $corp_taxrate = .10;
                 } else {
@@ -71,26 +76,30 @@ class BillingUpdate extends Command
                 $bill->mining_modifier = $rates['modifier'];
                 $bill->pve_taxrate = $rates['pve'];
                 $bill->save();
-            }
+            
+                $summary = $this->getMainsBilling($corp->corporation_id, $year, $month);
 
-            $summary = $this->getMainsBilling($corp->corporation_id, $year, $month);
-            $rates = $this->getCorporateTaxRate($corp->corporation_id);
-
-            foreach ($summary as $character) {
-                $bill = CharacterBill::where('character_id', $character['id'])
-                    ->where('year', $year)
-                    ->where('month', $month)
-                    ->get();
-                if (count($bill) == 0) {
-                    $bill = new CharacterBill;
-                    $bill->character_id = $character['id'];
-                    $bill->corporation_id = $corp->corporation_id;
-                    $bill->year = $year;
-                    $bill->month = $month;
-                    $bill->mining_bill = $character['amount'];
-                    $bill->mining_taxrate = ($character['taxrate'] * 100);
-                    $bill->mining_modifier = $rates['modifier'];
-                    $bill->save();
+                foreach ($summary as $character) {
+                    $bill = CharacterBill::where('character_id', $character['id'])
+                        ->where('year', $year)
+                        ->where('month', $month)
+                        ->get();
+                    if ((count($bill) == 0) || ($this->option('force') == true)) {
+                        if ($this->option('force') == true) {
+                            CharacterBill::where('month', $month)
+                                ->where('year', $year)
+                                ->delete();
+                        }
+                        $bill = new CharacterBill;
+                        $bill->character_id = $character['id'];
+                        $bill->corporation_id = $corp->corporation_id;
+                        $bill->year = $year;
+                        $bill->month = $month;
+                        $bill->mining_bill = $character['amount'];
+                        $bill->mining_taxrate = ($character['taxrate'] * 100);
+                        $bill->mining_modifier = $rates['modifier'];
+                        $bill->save();
+                    }
                 }
             }
         }

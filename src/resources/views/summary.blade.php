@@ -60,17 +60,17 @@
           @foreach($summary as $corp => $val)
             <tr>
               <td>{{ $corp }}</td>
-              <td>{{ number_format($val["mining"], 2) }}</td>
-              <td>{{ $val['oremodifier'] }}%</td>
-              <td>{{ number_format(($val["mining"] * ($val['oremodifier'] / 100)),2) }}</td>
-              <td>{{ $val['oretaxrate'] }}%</td>
-              <td>{{ number_format((($val["mining"] * ($val['oremodifier'] / 100)) * ($val['oretaxrate'] / 100)),2) }}</td>
+              <td style="text-align: right">{{ number_format($val["mining"], 2) }} ISK</td>
+              <td style="text-align: right">{{ $val['oremodifier'] }}%</td>
+              <td style="text-align: right">{{ number_format(($val["mining"] * ($val['oremodifier'] / 100)),2) }} ISK</td>
+              <td style="text-align: right">{{ $val['oretaxrate'] }}%</td>
+              <td style="text-align: right">{{ number_format((($val["mining"] * ($val['oremodifier'] / 100)) * ($val['oretaxrate'] / 100)),2) }} ISK</td>
               @if ($val["characters"] > 0)
-                <td>{{ $val["tracking"] }} / {{ $val["characters"] }}
+                <td style="text-align: right">{{ $val["tracking"] }} / {{ $val["characters"] }}
                   ({{ round(($val["tracking"] / $val["characters"]) * 100)  }}%)
                 </td>
               @else
-                <td>0 / 0 (0%)</td>
+                <td style="text-align: right">0 / 0 (0%)</td>
               @endif
             </tr>
           @endforeach
@@ -92,15 +92,15 @@
           @foreach($summary as $corp => $val)
             <tr>
               <td>{{ $corp }}</td>
-              <td>{{ number_format($val["bounty"], 2) }}</td>
-              <td>{{ $val['bountytaxrate'] }}%</td>
-              <td>{{ number_format(($val["bounty"] * ($val['bountytaxrate'] / 100)),2) }}</td>
+              <td style="text-align: right">{{ number_format($val["bounty"], 2) }} ISK</td>
+              <td style="text-align: right">{{ $val['bountytaxrate'] }}%</td>
+              <td style="text-align: right">{{ number_format(($val["bounty"] * ($val['bountytaxrate'] / 100)),2) }} ISK</td>
               @if ($val["characters"] > 0)
-                <td>{{ $val["tracking"] }} / {{ $val["characters"] }}
+                <td style="text-align: right">{{ $val["tracking"] }} / {{ $val["characters"] }}
                   ({{ round(($val["tracking"] / $val["characters"]) * 100)  }}%)
                 </td>
               @else
-                <td>0 / 0 (0%)</td>
+                <td style="text-align: right">0 / 0 (0%)</td>
               @endif
             </tr>
           @endforeach
@@ -158,10 +158,10 @@
                       table.clear();
                       for (var chars in result) {
                           table.row.add(["<a href=''><span rel='id-to-name'>" + chars + "</span></a>", 
-                              (new Intl.NumberFormat('en-US').format(result[chars].amount)),
+                              (new Intl.NumberFormat('en-US').format(result[chars].amount)) + " ISK",
                               (result[chars].modifier * 100) + "%",
                               (result[chars].taxrate * 100) + "%", 
-                              (new Intl.NumberFormat('en-US', {maximumFractionDigits: 2}).format(result[chars].amount * result[chars].taxrate * result[chars].modifier))]);
+                              (new Intl.NumberFormat('en-US', {maximumFractionDigits: 2}).format(result[chars].amount * result[chars].taxrate * result[chars].modifier)) + " ISK"]);
                       }
                       table.draw();
                       ids_to_names();

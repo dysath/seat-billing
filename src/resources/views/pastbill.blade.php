@@ -90,12 +90,14 @@
         </table>
       </div>
       <div class="tab-pane" id="tab3">
-        <select class="select" id="corpspinner">
-          <option disabled selected value="0">Please Choose a Corp</option>
-          @foreach($summary as $corp => $val)
-            <option value="{{ $val['id'] }}">{{ $val['name'] }}</option>
-          @endforeach
-        </select>
+        <div class="col-md-6">
+          <select class="select" style="width: 50%" id="corpspinner">
+            <option disabled selected value="0">Please Choose a Corp</option>
+            @foreach($summary as $corp => $val)
+              <option value="{{ $corp }}">{{ $val['name'] }}</option>
+            @endforeach
+          </select>
+        </div>
         <table class="table compact table-condensed table-hover table-responsive table-striped" id='indivmining'>
           <thead>
           <tr>
