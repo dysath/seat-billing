@@ -44,6 +44,14 @@ class BillingUpdate extends Command
             $month = $this->argument('month');
         } 
 
+        if ($this->option('force') == true) {
+            CorporationBill::where('month', $month)
+                ->where('year', $year)
+                ->delete();
+            CharacterBill::where('month', $month)
+                ->where('year', $year)
+                ->delete();
+        }
         // See if corps already have a bill.  If not, generate one.
 
         $corps = CorporationInfo::all();
@@ -53,12 +61,8 @@ class BillingUpdate extends Command
                 ->where('month', $month)
                 ->get();
 
+
             if ((count($bill) == 0) || ($this->option('force') == true)) {
-                if ($this->option('force') == true) {
-                    CorporationBill::where('month', $month)
-                        ->where('year', $year)
-                        ->delete();
-                }
                 if (!$corp->tax_rate) {
                     $corp_taxrate = .10;
                 } else {
@@ -85,11 +89,6 @@ class BillingUpdate extends Command
                         ->where('month', $month)
                         ->get();
                     if ((count($bill) == 0) || ($this->option('force') == true)) {
-                        if ($this->option('force') == true) {
-                            CharacterBill::where('month', $month)
-                                ->where('year', $year)
-                                ->delete();
-                        }
                         $bill = new CharacterBill;
                         $bill->character_id = $character['id'];
                         $bill->corporation_id = $corp->corporation_id;
