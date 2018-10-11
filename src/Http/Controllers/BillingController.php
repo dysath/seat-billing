@@ -104,11 +104,13 @@ class BillingController extends Controller
     {
         setting(["oremodifier", $request->oremodifier], true);
         setting(["oretaxrate", $request->oretaxrate], true);
+        setting(["refinerate", $request->refinerate], true);
         setting(["bountytaxrate", $request->bountytaxrate], true);
         setting(["ioremodifier", $request->ioremodifier], true);
         setting(["ioretaxrate", $request->ioretaxrate], true);
         setting(["ibountytaxrate", $request->ibountytaxrate], true);
         setting(["irate", $request->irate], true);
+        setting(["pricevalue", $request->pricevalue], true);
 
         return redirect()->back()->with('success', 'Billing Settings have successfully been updated.');
     }

@@ -19,23 +19,44 @@ trait BillingHelper
 
     public function getCharacterBilling($corporation_id, $year, $month)
     {
-        $ledger = CharacterMining::select('user_settings.value', DB::raw('SUM(character_minings.quantity * market_prices.average_price) as amounts'))
-            ->join('market_prices', 'character_minings.type_id', 'market_prices.type_id')
-            ->join('corporation_member_trackings', function($join) use ($corporation_id) {
-                 $join->on('corporation_member_trackings.character_id', 'character_minings.character_id')
-                     ->where('corporation_member_trackings.corporation_id', $corporation_id);
-            })
-            ->join('users', 'users.id', 'corporation_member_trackings.character_id')
-            ->join('user_settings', function ($join) {
-                $join->on('user_settings.group_id', 'users.group_id')
-                    ->where('user_settings.name', 'main_character_id');
-            })
-            ->where('year', $year)
-            ->where('month', $month)
-            ->groupby('user_settings.value')
-            ->get();
 
-//dd($ledger);
+        if (setting("pricevalue", true) == "m") {
+            $ledger = CharacterMining::select('user_settings.value', DB::raw('SUM((character_minings.quantity / 100) * (invTypeMaterials.quantity * ' . 
+                (setting("refinerate", true) / 100) . ') * market_prices.adjusted_price) as amounts'))
+                ->join('invTypeMaterials', 'character_minings.type_id', 'invTypeMaterials.typeID')
+                ->join('market_prices', 'invTypeMaterials.materialTypeID', 'market_prices.type_id')
+                ->join('corporation_member_trackings', function($join) use ($corporation_id) {
+                     $join->on('corporation_member_trackings.character_id', 'character_minings.character_id')
+                         ->where('corporation_member_trackings.corporation_id', $corporation_id);
+                })
+                ->join('users', 'users.id', 'corporation_member_trackings.character_id')
+                ->join('user_settings', function ($join) {
+                    $join->on('user_settings.group_id', 'users.group_id')
+                        ->where('user_settings.name', 'main_character_id');
+                })
+                ->where('year', $year)
+                ->where('month', $month)
+                ->groupby('user_settings.value')
+                ->get();
+        } else {
+
+            $ledger = CharacterMining::select('user_settings.value', DB::raw('SUM(character_minings.quantity * market_prices.average_price) as amounts'))
+                ->join('market_prices', 'character_minings.type_id', 'market_prices.type_id')
+                ->join('corporation_member_trackings', function($join) use ($corporation_id) {
+                     $join->on('corporation_member_trackings.character_id', 'character_minings.character_id')
+                         ->where('corporation_member_trackings.corporation_id', $corporation_id);
+                })
+                ->join('users', 'users.id', 'corporation_member_trackings.character_id')
+                ->join('user_settings', function ($join) {
+                    $join->on('user_settings.group_id', 'users.group_id')
+                        ->where('user_settings.name', 'main_character_id');
+                })
+                ->where('year', $year)
+                ->where('month', $month)
+                ->groupby('user_settings.value')
+                ->get();
+        }
+
         return $ledger;
     }
 
@@ -101,17 +122,9 @@ trait BillingHelper
 
     private function getMiningTotal($corporation_id, $year, $month)
     {
-        $ledgers = $this->getCorporationLedger($corporation_id, $year, $month, true)
-            ->groupBy('character_id')
-            ->map(function ($row) {
-                $row->quantity = $row->sum('quantity');
-                $row->volumes = $row->sum('volumes');
-                $row->amount = $row->sum('amount');
+        $ledgers = $this->getCharacterBilling($corporation_id, $year, $month);
 
-                return $row;
-            });
-
-        return $ledgers->sum('amount');
+        return $ledgers->sum('amounts');
     }
 
 
