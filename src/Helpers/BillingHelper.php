@@ -21,7 +21,7 @@ trait BillingHelper
     {
 
         if (setting("pricevalue", true) == "m") {
-            $ledger = CharacterMining::select('user_settings.value', DB::raw('SUM((character_minings.quantity / 100) * (invTypeMaterials.quantity * ' . 
+            $ledger = DB::table('character_minings')->select('user_settings.value', DB::raw('SUM((character_minings.quantity / 100) * (invTypeMaterials.quantity * ' . 
                 (setting("refinerate", true) / 100) . ') * market_prices.adjusted_price) as amounts'))
                 ->join('invTypeMaterials', 'character_minings.type_id', 'invTypeMaterials.typeID')
                 ->join('market_prices', 'invTypeMaterials.materialTypeID', 'market_prices.type_id')
@@ -40,7 +40,7 @@ trait BillingHelper
                 ->get();
         } else {
 
-            $ledger = CharacterMining::select('user_settings.value', DB::raw('SUM(character_minings.quantity * market_prices.average_price) as amounts'))
+            $ledger = DB::table('character_minings')->select('user_settings.value', DB::raw('SUM(character_minings.quantity * market_prices.average_price) as amounts'))
                 ->join('market_prices', 'character_minings.type_id', 'market_prices.type_id')
                 ->join('corporation_member_trackings', function($join) use ($corporation_id) {
                      $join->on('corporation_member_trackings.character_id', 'character_minings.character_id')
@@ -176,7 +176,10 @@ trait BillingHelper
         $val = CorporationWalletJournal::join('character_infos', 'corporation_wallet_journals.first_party_id', '=', 'character_infos.character_id')
             ->where('corporation_wallet_journals.amount', round($amount, 2))
             ->where('character_infos.corporation_id', $corporation_id)
-            ->where('corporation_wallet_journals.ref_type', 'player_donation')
+            ->where(function($query) {
+                $query->where('corporation_wallet_journals.ref_type', 'player_donation')
+                     ->orWhere('corporation_wallet_journals.ref_type', 'contract_price_payment_corp');
+                })
             ->whereMonth('corporation_wallet_journals.date', $month + 1)
             ->whereYear('corporation_wallet_journals.date', $year)
             ->select('id')
