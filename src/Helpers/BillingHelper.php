@@ -62,7 +62,7 @@ trait BillingHelper
 
     private function getTrackingMembers($corporation_id)
     {
-        return $this->getCorporationMemberTracking($corporation_id);
+        return $this->getCorporationMemberTracking($corporation_id)->get();
     }
 
     public function getMainsBilling($corporation_id, $year = null, $month = null)
