@@ -147,7 +147,7 @@
                   if (result) {
                       table.clear();
                       for (var chars in result) {
-                          table.row.add(["<a href=''><span rel='id-to-name'>" + result[chars].character_id + "</span></a>", (new Intl.NumberFormat('en-US').format(result[chars].mining_bill)),
+                          table.row.add(['<a href=""><span class="id-to-name" data-id="' + result[chars].character_id + '">{{ trans('web::seat.unknown') }}</span></a>', (new Intl.NumberFormat('en-US').format(result[chars].mining_bill)),
                               (result[chars].mining_modifier) + "%", (result[chars].mining_taxrate) + "%",
                               (new Intl.NumberFormat('en-US', {maximumFractionDigits: 2}).format(result[chars].mining_bill * (result[chars].mining_modifier / 100) * (result[chars].mining_taxrate / 100))) + " ISK"]);
                       }
