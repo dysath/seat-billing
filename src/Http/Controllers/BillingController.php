@@ -43,7 +43,14 @@ class BillingController extends Controller
             $summary[$corporation->name]['tracking'] = 0;
 
             $tracking = $this->getTrackingMembers($corporation->corporation_id);
-            $summary[$corporation->name]['characters'] = count($tracking);
+            $summary[$corporation->name]['characters'] = $tracking->count();
+
+            $summary[$corporation->name]['tracking'] = $tracking->get()->filter(function ($value) {
+                if (is_null($value->user))
+                    return false;
+
+                return ! is_null($value->user->refresh_token);
+            })->count();
 
             foreach ($tracking as $member) {
                 if ($member->key_ok) {

@@ -96,16 +96,17 @@ trait BillingHelper
     {
         $reg_chars = 0;
         $tracking = $this->getTrackingMembers($corporation_id);
-        $total_chars = count($tracking);
+        $total_chars = $tracking->count();
         if ($total_chars == 0) {
             $total_chars = 1;
         }
 
-        foreach ($tracking as $member) {
-            if ($member->key_ok) {
-                $reg_chars++;
-            }
-        }
+        $reg_chars = $tracking->get()->filter(function ($value) {
+            if (is_null($value->user))
+                return false;
+
+            return ! is_null($value->user->refresh_token);
+        })->count();
 
         $mining_taxrate = setting('ioretaxrate', true);
         $mining_modifier = setting('ioremodifier', true);
