@@ -146,7 +146,8 @@ trait BillingHelper
 
         return CorporationBill::select(DB::raw('DISTINCT month, year'))
             ->wherein('corporation_id', $corporation_ids)
-            ->orderBy('month', 'year', 'desc')
+            ->orderBy('year', 'desc')
+            ->orderBy('month', 'desc')
             ->get();
     }
 
