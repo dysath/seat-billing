@@ -130,38 +130,12 @@ class BillingController extends Controller
 
     public function previousBillingCycle($year, $month)
     {
-        $summary = [];
-
         $corporations = $this->getCorporations();
 
-        foreach ($corporations as $corporation) {
-
-            $bill = $this->getCorporationBillByMonth($corporation->corporation_id, $year, $month);
-
-            if (is_null($bill))
-                continue;
-
-            $summary[$corporation->corporation_id]['id'] = $corporation->corporation_id;
-            $summary[$corporation->corporation_id]['name'] = $corporation->name;
-            $summary[$corporation->corporation_id]['pve_bill'] = $bill->pve_bill;
-            $summary[$corporation->corporation_id]['mining_bill'] = $bill->mining_bill;
-            $summary[$corporation->corporation_id]['pve_taxrate'] = $bill->pve_taxrate;
-            $summary[$corporation->corporation_id]['mining_taxrate'] = $bill->mining_taxrate;
-            $summary[$corporation->corporation_id]['mining_modifier'] = $bill->mining_modifier;
-            $summary[$corporation->corporation_id]['pve_paid'] = true;
-            $summary[$corporation->corporation_id]['mining_paid'] = true;
-
-            if (count($this->getPaidBillFromJournal($corporation->corporation_id, ($bill->pve_bill * ($bill->pve_taxrate / 100)), $month, $year)) === 0) {
-                $summary[$corporation->corporation_id]['pve_paid'] = false;
-            }
-
-            if (count($this->getPaidBillFromJournal($corporation->corporation_id, ($bill->mining_bill * ($bill->mining_modifier / 100) * ($bill->mining_taxrate / 100)), $month, $year)) === 0) {
-                $summary[$corporation->corporation_id]['mining_paid'] = false;
-            }
-        }
+        $stats = $this->getCorporationBillByMonth($year, $month)->sortBy('corporation.name');
 
         $dates = $this->getCorporationBillingMonths($corporations->pluck('corporation_id')->toArray());
 
-        return view('billing::pastbill', compact('summary', 'dates', 'year', 'month'));
+        return view('billing::pastbill', compact('stats', 'dates', 'year', 'month'));
     }
 }

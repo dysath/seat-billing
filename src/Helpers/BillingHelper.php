@@ -150,12 +150,12 @@ trait BillingHelper
             ->get();
     }
 
-    private function getCorporationBillByMonth($corporation_id, $year, $month)
+    private function getCorporationBillByMonth($year, $month)
     {
-        return CorporationBill::where("corporation_id", $corporation_id)
+        return CorporationBill::with('corporation')
             ->where("month", $month)
             ->where("year", $year)
-            ->first();
+            ->get();
     }
 
     private function getPastMainsBillingByMonth($corporation_id, $year, $month)
