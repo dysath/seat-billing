@@ -46,7 +46,6 @@
             <th>Adjusted Value</th>
             <th>Tax Rate</th>
             <th>Tax Owed</th>
-            <th>Paid</th>
           </tr>
           @foreach($stats as $row)
             <tr>
@@ -76,10 +75,10 @@
             <th>Total Bounties</th>
             <th>Tax Rate</th>
             <th>Tax Owed</th>
-            <th>Paid</th>
           </tr>
           @foreach($stats as $row)
             <tr>
+
               <td>{{ $row->corporation->name }}</td>
               <td>{{ number_format($row->pve_bill, 2) }}</td>
               <td>{{ $row->pve_taxrate }}%</td>
