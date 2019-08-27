@@ -2,6 +2,7 @@
 
 namespace Denngarr\Seat\Billing\Http\Controllers;
 
+use Illuminate\Support\Facades\DB;
 use Seat\Web\Http\Controllers\Controller;
 use Seat\Eveapi\Models\Alliances\Alliance;
 use Seat\Eveapi\Models\Character\CharacterInfo;
@@ -16,74 +17,65 @@ class BillingController extends Controller
 {
     use MiningLedger, Ledger, CharacterLedger, BillingHelper;
 
-    public function getLiveBillingView($alliance_id = null)
+    public function getLiveBillingView(int $alliance_id = 0)
     {
-        $alliances = [];
-        $summary = [];
+        $start_date = carbon()->startOfMonth()->toDateString();
+        $end_date = carbon()->endOfMonth()->toDateString();
 
-        $corporations = $this->getCorporations();
+        $mining_stats = DB::table('corporation_member_trackings')
+            ->select('corporation_id')
+            ->leftJoin('character_minings', 'corporation_member_trackings.character_id', '=', 'character_minings.character_id')
+            ->whereBetween('date', [$start_date, $end_date])
+            ->groupBy('corporation_id');
 
-        foreach ($corporations as $corporation) {
-            $alliance = Alliance::find($corporation->alliance_id);
-
-            if ($alliance != null) {
-                $alliances[$alliance->alliance_id]['name'] = $alliance->name;
-            }
+        if (setting("pricevalue", true) == "m") {
+            $mining_stats = $mining_stats->selectRaw('SUM((character_minings.quantity / 100) * (invTypeMaterials.quantity * (? / 100)) * adjusted_price) as mining', [(float) setting("refinerate", true)])
+                ->leftJoin('invTypeMaterials', 'character_minings.type_id', '=', 'invTypeMaterials.typeID')
+                ->leftJoin('market_prices', 'invTypeMaterials.materialTypeID', '=', 'market_prices.type_id');
+        } else {
+            $mining_stats = $mining_stats->selectRaw('SUM(character_minings.quantity * market_prices.average_price) as mining')
+                ->leftJoin('market_prices', 'character_minings.type_id', '=', 'market_prices.type_id');
         }
 
-        foreach ($corporations as $corporation) {
+        $bounty_stats = DB::table('corporation_wallet_journals')
+            ->select('corporation_infos.corporation_id')
+            ->selectRaw('SUM(amount) / tax_rate as bounties')
+            ->join('corporation_infos', 'corporation_wallet_journals.corporation_id', '=', 'corporation_infos.corporation_id')
+            ->whereIn('ref_type', ['bounty_prizes', 'bounty_prize'])
+            ->whereBetween('date', [$start_date, $end_date])
+            ->groupBy('corporation_id');
 
-            if (($alliance_id) && ($corporation->alliance_id != $alliance_id))
-              continue;
+        $stats = DB::table('corporation_infos')
+            ->select('corporation_infos.corporation_id', 'corporation_infos.alliance_id', 'corporation_infos.name', 'corporation_infos.tax_rate', 'mining', 'bounties')
+            ->selectRaw('COUNT(corporation_member_trackings.character_id) as members')
+            ->selectRaw('COUNT(refresh_tokens.character_id) as actives')
+            ->join('corporation_member_trackings', 'corporation_infos.corporation_id', '=', 'corporation_member_trackings.corporation_id')
+            ->leftJoin('users', 'corporation_member_trackings.character_id', '=', 'users.id')
+            ->leftJoin('refresh_tokens', function ($join) {
+                $join->on('users.id', '=', 'refresh_tokens.character_id')
+                    ->whereNull('deleted_at');
+            })
+            ->leftJoin(DB::raw('(' . $mining_stats->toSql() . ') mining_stats'), function($join) {
+                $join->on('corporation_infos.corporation_id', '=', 'mining_stats.corporation_id');
+            })
+            ->leftJoin(DB::raw('(' . $bounty_stats->toSql() . ') bounty_stats'), function ($join) {
+                $join->on('corporation_infos.corporation_id', '=', 'bounty_stats.corporation_id');
+            })
+            ->mergeBindings($mining_stats)
+            ->mergeBindings($bounty_stats)
+            ->groupBy('corporation_id', 'alliance_id', 'name', 'tax_rate', 'mining', 'bounties')
+            ->orderBy('name');
 
-            $summary[$corporation->name]['id'] = $corporation->corporation_id;
-            $summary[$corporation->name]['alliance_id'] = $corporation->alliance_id;
+        if ($alliance_id !== 0)
+            $stats->where('alliance_id', $alliance_id);
 
-            $summary[$corporation->name]['mining'] = $this->getMiningTotal($corporation->corporation_id, date('Y'), date('n'));
-            $summary[$corporation->name]['tracking'] = 0;
+        $stats = $stats->get();
 
-            $tracking = $this->getTrackingMembers($corporation->corporation_id);
-            $summary[$corporation->name]['characters'] = $tracking->count();
+        $alliances = Alliance::whereIn('alliance_id', CorporationInfo::select('alliance_id'))->orderBy('name')->get();
 
-            $summary[$corporation->name]['tracking'] = $tracking->get()->filter(function ($value) {
-                if (is_null($value->user))
-                    return false;
+        $dates = $this->getCorporationBillingMonths($stats->pluck('corporation_id')->toArray());
 
-                return ! is_null($value->user->refresh_token);
-            })->count();
-
-            foreach ($tracking as $member) {
-                if ($member->key_ok) {
-                    $summary[$corporation->name]['tracking']++;
-                }
-            }
-
-            $summary[$corporation->name]['corptaxrate'] = .10;
-
-            if ($corporation->tax_rate) {
-                $summary[$corporation->name]['corptaxrate'] = $corporation->tax_rate;
-            }
-
-            $summary[$corporation->name]['bounty'] = $this->getBountyTotal($corporation->corporation_id, date('Y'), date('n')) / $summary[$corporation->name]['corptaxrate'];
-
-            if ($summary[$corporation->name]['characters'] == 0) {
-                $summary[$corporation->name]['characters'] = 1;
-            }
-
-            $summary[$corporation->name]['oretaxrate'] = setting('ioretaxrate', true);
-            $summary[$corporation->name]['oremodifier'] = setting('ioremodifier', true);
-            $summary[$corporation->name]['bountytaxrate'] = setting('ibountytaxrate', true);
-
-            if (($summary[$corporation->name]['tracking'] / $summary[$corporation->name]['characters']) < (setting('irate', true) / 100)) {
-                $summary[$corporation->name]['oretaxrate'] = setting('oretaxrate', true);
-                $summary[$corporation->name]['oremodifier'] = setting('oremodifier', true);
-                $summary[$corporation->name]['bountytaxrate'] = setting('bountytaxrate', true);
-            }
-        }
-
-        $dates = $this->getCorporationBillingMonths($corporations->pluck('corporation_id')->toArray());
-
-        return view('billing::summary', compact('alliances', 'summary', 'dates'));
+        return view('billing::summary', compact('alliances', 'stats', 'dates'));
     }
 
     private function getCorporations()
@@ -138,31 +130,12 @@ class BillingController extends Controller
 
     public function previousBillingCycle($year, $month)
     {
-        $summary = [];
-
         $corporations = $this->getCorporations();
 
-        foreach ($corporations as $corporation) {
-
-            $bill = $this->getCorporationBillByMonth($corporation->corporation_id, $year, $month);
-
-            if (is_null($bill))
-                continue;
-
-            $summary[$corporation->corporation_id]['id'] = $corporation->corporation_id;
-            $summary[$corporation->corporation_id]['name'] = $corporation->name;
-            $summary[$corporation->corporation_id]['pve_bill'] = $bill->pve_bill;
-            $summary[$corporation->corporation_id]['mining_bill'] = $bill->mining_bill;
-            $summary[$corporation->corporation_id]['pve_taxrate'] = $bill->pve_taxrate;
-            $summary[$corporation->corporation_id]['mining_taxrate'] = $bill->mining_taxrate;
-            $summary[$corporation->corporation_id]['mining_modifier'] = $bill->mining_modifier;
-            $summary[$corporation->corporation_id]['pve_paid'] = true;
-            $summary[$corporation->corporation_id]['mining_paid'] = true;
-
-        }
+        $stats = $this->getCorporationBillByMonth($year, $month)->sortBy('corporation.name');
 
         $dates = $this->getCorporationBillingMonths($corporations->pluck('corporation_id')->toArray());
 
-        return view('billing::pastbill', compact('summary', 'dates', 'year', 'month'));
+        return view('billing::pastbill', compact('stats', 'dates', 'year', 'month'));
     }
 }

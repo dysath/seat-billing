@@ -39,8 +39,8 @@
           <select class="form-control" style="width: 25%" id="alliancespinner">
             <option selected disabled>Choose an Alliance</option>
             <option value="0">All Alliances</option>
-            @foreach($alliances as $alliance => $val)
-              <option value="{{ $alliance }}">{{ $val["name"] }}</option>
+            @foreach($alliances as $alliance)
+              <option value="{{ $alliance->alliance_id }}">{{ $alliance->name }}</option>
             @endforeach
           </select>
         </div>
@@ -57,20 +57,37 @@
           </tr>
           </thead>
           <tbody>
-          @foreach($summary as $corp => $val)
+          @foreach($stats as $row)
             <tr>
-              <td>{{ $corp }}</td>
-              <td style="text-align: right">{{ number_format($val["mining"], 2) }} ISK</td>
-              <td style="text-align: right">{{ $val['oremodifier'] }}%</td>
-              <td style="text-align: right">{{ number_format(($val["mining"] * ($val['oremodifier'] / 100)),2) }} ISK</td>
-              <td style="text-align: right">{{ $val['oretaxrate'] }}%</td>
-              <td style="text-align: right">{{ number_format((($val["mining"] * ($val['oremodifier'] / 100)) * ($val['oretaxrate'] / 100)),2) }} ISK</td>
-              @if ($val["characters"] > 0)
-                <td style="text-align: right">{{ $val["tracking"] }} / {{ $val["characters"] }}
-                  ({{ round(($val["tracking"] / $val["characters"]) * 100)  }}%)
-                </td>
+              <td>{{ $row->name }}</td>
+              <td class="text-right" data-order="{{ $row->mining }}">{{ number_format($row->mining, 2) }} ISK</td>
+              @if($row->actives / $row->members < (setting('irate', true) / 100))
+              <td class="text-right" data-order="{{ setting('oremodifier', true) }}">{{ setting('oremodifier', true) }}%</td>
               @else
-                <td style="text-align: right">0 / 0 (0%)</td>
+              <td class="text-right" data-order="{{ setting('ioremodifier', true) }}">{{ setting('ioremodifier', true) }}%</td>
+              @endif
+              @if($row->actives / $row->members < (setting('irate', true) / 100))
+              <td class="text-right" data-order="{{ $row->mining * (setting('oremodifier', true) / 100) }}">{{ number_format(($row->mining * (setting('oremodifier', true) / 100)), 2) }} ISK</td>
+              @else
+              <td class="text-right" data-order="{{ $row->mining * (setting('ioremodifier', true) / 100) }}">{{ number_format(($row->mining * (setting('ioremodifier', true) / 100)), 2) }} ISK</td>
+              @endif
+              @if($row->actives / $row->members < (setting('irate', true) / 100))
+              <td class="text-right" data-order="{{ setting('oretaxrate', true) }}">{{ setting('oretaxrate', true) }}%</td>
+              @else
+              <td class="text-right" data-order="{{ setting('ioretaxrate', true) }}">{{ setting('ioretaxrate', true) }}%</td>
+              @endif
+              @if($row->actives / $row->members < (setting('irate', true) / 100))
+              <td class="text-right" data-order="{{ ($row->mining * (setting('oremodifier', true) / 100)) * (setting('oretaxrate', true) / 100) }}">{{ number_format(($row->mining * (setting('oremodifier', true) / 100)) * (setting('oretaxrate', true) / 100), 2) }} ISK</td>
+              @else
+              <td class="text-right" data-order="{{ ($row->mining * (setting('ioremodifier', true) / 100)) * (setting('ioretaxrate', true) / 100) }}">{{ number_format(($row->mining * (setting('ioremodifier', true) / 100)) * (setting('ioretaxrate', true) / 100), 2) }} ISK</td>
+              @endif
+              @if ($row->members > 0)
+              <td class="text-right" data-order="{{ $row->actives / $row->members }}">
+                {{ $row->actives }} / {{ $row->members }}
+                ({{ round(($row->actives / $row->members) * 100) }}%)
+              </td>
+              @else
+              <td class="text-right" data-order="0">0 / 0 (0%)</td>
               @endif
             </tr>
           @endforeach
@@ -89,18 +106,27 @@
           </tr>
           </thead>
           <tbody>
-          @foreach($summary as $corp => $val)
+          @foreach($stats as $row)
             <tr>
-              <td>{{ $corp }}</td>
-              <td style="text-align: right">{{ number_format($val["bounty"], 2) }} ISK</td>
-              <td style="text-align: right">{{ $val['bountytaxrate'] }}%</td>
-              <td style="text-align: right">{{ number_format(($val["bounty"] * ($val['bountytaxrate'] / 100)),2) }} ISK</td>
-              @if ($val["characters"] > 0)
-                <td style="text-align: right">{{ $val["tracking"] }} / {{ $val["characters"] }}
-                  ({{ round(($val["tracking"] / $val["characters"]) * 100)  }}%)
-                </td>
+              <td>{{ $row->name }}</td>
+              <td class="text-right" data-order="{{ $row->bounties }}">{{ number_format($row->bounties, 2) }} ISK</td>
+              @if($row->actives / $row->members < (setting('irate', true) / 100))
+              <td class="text-right" data-order="{{ setting('bountytaxrate', true) }}">{{ setting('bountytaxrate', true) }}%</td>
               @else
-                <td style="text-align: right">0 / 0 (0%)</td>
+              <td class="text-right" data-order="{{ setting('ibountytaxrate', true) }}">{{ setting('ibountytaxrate', true) }}%</td>
+              @endif
+              @if($row->actives / $row->members < (setting('irate', true) / 100))
+              <td class="text-right" data-order="{{ $row->bounties * (setting('bountytaxrate', true)) }}">{{ number_format(($row->bounties * (setting('bountytaxrate', true) / 100)),2) }} ISK</td>
+              @else
+              <td class="text-right" data-order="{{ $row->bounties * (setting('ibountytaxrate', true)) }}">{{ number_format(($row->bounties * (setting('ibountytaxrate', true) / 100)),2) }} ISK</td>
+              @endif
+              @if ($row->members > 0)
+              <td class="text-right" data-order="{{ $row->actives / $row->members }}">
+                {{ $row->actives }} / {{ $row->members }}
+                ({{ round(($row->actives / $row->members) * 100)  }}%)
+              </td>
+              @else
+              <td class="text-right" data-order="0">0 / 0 (0%)</td>
               @endif
             </tr>
           @endforeach
@@ -111,8 +137,8 @@
         <div class="col-md-6">
           <select class="form-control" style="width: 50%" id="corpspinner">
             <option disabled selected value="0">Please Choose a Corp</option>
-            @foreach($summary as $corp => $val)
-              <option value="{{ $val['id'] }}">{{ $corp }}</option>
+            @foreach($stats as $row)
+              <option value="{{ $row->corporation_id }}">{{ $row->name }}</option>
             @endforeach
           </select>
         </div>

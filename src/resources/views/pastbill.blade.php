@@ -47,14 +47,24 @@
             <th>Tax Rate</th>
             <th>Tax Owed</th>
           </tr>
-          @foreach($summary as $corp => $val)
+          @foreach($stats as $row)
             <tr>
-              <td>{{ $val["name"] }}</td>
-              <td>{{ number_format($val["mining_bill"], 2) }}</td>
-              <td>{{ $val['mining_modifier'] }}%</td>
-              <td>{{ number_format(($val["mining_bill"] * ($val["mining_modifier"] / 100)),2) }}</td>
-              <td>{{ $val['mining_taxrate'] }}%</td>
-              <td>{{ number_format((($val["mining_bill"] * ($val["mining_modifier"] / 100)) * ($val['mining_taxrate'] / 100)),2) }}</td>
+              <td>{{ $row->corporation->name }}</td>
+              <td>{{ number_format($row->mining_bill, 2) }}</td>
+              <td>{{ $row->mining_modifier }}%</td>
+              <td>{{ number_format(($row->mining_bill * ($row->mining_modifier / 100)),2) }}</td>
+              <td>{{ $row->mining_taxrate }}%</td>
+              <td>{{ number_format((($row->mining_bill * ($row->mining_modifier / 100)) * ($row->mining_taxrate / 100)),2) }}</td>
+              <td>
+                @if($row->mining_bill > 0)
+                  @if($row->isMiningPaid() || $row->isPaid())
+                  <i class="fa fa-check-circle text-green"></i>
+                  @else
+                  <i class="fa fa-close text-red"></i>
+                  @endif
+                @endif
+              </td>
+            </tr>
           @endforeach
         </table>
       </div>
@@ -66,12 +76,22 @@
             <th>Tax Rate</th>
             <th>Tax Owed</th>
           </tr>
-          @foreach($summary as $corp => $val)
+          @foreach($stats as $row)
             <tr>
-              <td>{{ $val["name"] }}</td>
-              <td>{{ number_format($val["pve_bill"], 2) }}</td>
-              <td>{{ $val['pve_taxrate'] }}%</td>
-              <td>{{ number_format(($val["pve_bill"] * ($val['pve_taxrate'] / 100)),2) }}</td>
+
+              <td>{{ $row->corporation->name }}</td>
+              <td>{{ number_format($row->pve_bill, 2) }}</td>
+              <td>{{ $row->pve_taxrate }}%</td>
+              <td>{{ number_format(($row->pve_bill * ($row->pve_taxrate / 100)),2) }}</td>
+              <td>
+                @if($row->pve_bill > 0)
+                  @if ($row->isPvePaid() || $row->isPaid())
+                    <i class="fa fa-check-circle text-green"></i>
+                  @else
+                    <i class="fa fa-close text-red"></i>
+                  @endif
+                @endif
+              </td>
             </tr>
           @endforeach
         </table>
@@ -80,8 +100,8 @@
         <div class="col-md-6">
           <select class="select" style="width: 50%" id="corpspinner">
             <option disabled selected value="0">Please Choose a Corp</option>
-            @foreach($summary as $corp => $val)
-              <option value="{{ $corp }}">{{ $val['name'] }}</option>
+            @foreach($stats as $row)
+              <option value="{{ $row->corporation->corporation_id }}">{{ $row->corporation->name }}</option>
             @endforeach
           </select>
         </div>
