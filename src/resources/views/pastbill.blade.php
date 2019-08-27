@@ -55,15 +55,6 @@
               <td>{{ number_format(($row->mining_bill * ($row->mining_modifier / 100)),2) }}</td>
               <td>{{ $row->mining_taxrate }}%</td>
               <td>{{ number_format((($row->mining_bill * ($row->mining_modifier / 100)) * ($row->mining_taxrate / 100)),2) }}</td>
-              <td>
-                @if($row->mining_bill > 0)
-                  @if($row->isMiningPaid() || $row->isPaid())
-                  <i class="fa fa-check-circle text-green"></i>
-                  @else
-                  <i class="fa fa-close text-red"></i>
-                  @endif
-                @endif
-              </td>
             </tr>
           @endforeach
         </table>
@@ -83,15 +74,6 @@
               <td>{{ number_format($row->pve_bill, 2) }}</td>
               <td>{{ $row->pve_taxrate }}%</td>
               <td>{{ number_format(($row->pve_bill * ($row->pve_taxrate / 100)),2) }}</td>
-              <td>
-                @if($row->pve_bill > 0)
-                  @if ($row->isPvePaid() || $row->isPaid())
-                    <i class="fa fa-check-circle text-green"></i>
-                  @else
-                    <i class="fa fa-close text-red"></i>
-                  @endif
-                @endif
-              </td>
             </tr>
           @endforeach
         </table>
