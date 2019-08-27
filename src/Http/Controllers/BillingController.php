@@ -159,13 +159,6 @@ class BillingController extends Controller
             $summary[$corporation->corporation_id]['pve_paid'] = true;
             $summary[$corporation->corporation_id]['mining_paid'] = true;
 
-            if (count($this->getPaidBillFromJournal($corporation->corporation_id, ($bill->pve_bill * ($bill->pve_taxrate / 100)), $month, $year)) === 0) {
-                $summary[$corporation->corporation_id]['pve_paid'] = false;
-            }
-
-            if (count($this->getPaidBillFromJournal($corporation->corporation_id, ($bill->mining_bill * ($bill->mining_modifier / 100) * ($bill->mining_taxrate / 100)), $month, $year)) === 0) {
-                $summary[$corporation->corporation_id]['mining_paid'] = false;
-            }
         }
 
         $dates = $this->getCorporationBillingMonths($corporations->pluck('corporation_id')->toArray());

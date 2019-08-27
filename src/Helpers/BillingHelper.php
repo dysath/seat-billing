@@ -146,7 +146,8 @@ trait BillingHelper
 
         return CorporationBill::select(DB::raw('DISTINCT month, year'))
             ->wherein('corporation_id', $corporation_ids)
-            ->orderBy('month', 'year', 'desc')
+            ->orderBy('year', 'desc')
+            ->orderBy('month', 'desc')
             ->get();
     }
 
@@ -166,26 +167,4 @@ trait BillingHelper
             ->get();
     }
 
-    // select id from corporation_wallet_journals
-    // INNER JOIN character_infos on corporation_wallet_journals.first_party_id=character_infos.character_id
-    // WHERE corporation_wallet_journals.amount='9000000000'
-    // and character_infos.corporation_id='98387096'
-    // and corporation_wallet_journals.ref_type='player_donation';
-
-    private function getPaidBillFromJournal($corporation_id, $amount, $month, $year)
-    {
-        $val = CorporationWalletJournal::join('character_infos', 'corporation_wallet_journals.first_party_id', '=', 'character_infos.character_id')
-            ->where('corporation_wallet_journals.amount', round($amount, 2))
-            ->where('character_infos.corporation_id', $corporation_id)
-            ->where(function($query) {
-                $query->where('corporation_wallet_journals.ref_type', 'player_donation')
-                     ->orWhere('corporation_wallet_journals.ref_type', 'contract_price_payment_corp');
-                })
-            ->whereMonth('corporation_wallet_journals.date', $month + 1)
-            ->whereYear('corporation_wallet_journals.date', $year)
-            ->select('id')
-            ->get();
-
-        return $val;
-    }
 }

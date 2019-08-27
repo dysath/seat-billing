@@ -46,7 +46,6 @@
             <th>Adjusted Value</th>
             <th>Tax Rate</th>
             <th>Tax Owed</th>
-            <th>Paid</th>
           </tr>
           @foreach($summary as $corp => $val)
             <tr>
@@ -56,11 +55,6 @@
               <td>{{ number_format(($val["mining_bill"] * ($val["mining_modifier"] / 100)),2) }}</td>
               <td>{{ $val['mining_taxrate'] }}%</td>
               <td>{{ number_format((($val["mining_bill"] * ($val["mining_modifier"] / 100)) * ($val['mining_taxrate'] / 100)),2) }}</td>
-              @if ($val["mining_paid"] == true)
-                <td><i class="fa fa-check-circle text-green"></i></td>
-              @else
-                <td><i class="fa fa-close text-red"></i></td>
-            @endif
           @endforeach
         </table>
       </div>
@@ -71,7 +65,6 @@
             <th>Total Bounties</th>
             <th>Tax Rate</th>
             <th>Tax Owed</th>
-            <th>Paid</th>
           </tr>
           @foreach($summary as $corp => $val)
             <tr>
@@ -79,12 +72,6 @@
               <td>{{ number_format($val["pve_bill"], 2) }}</td>
               <td>{{ $val['pve_taxrate'] }}%</td>
               <td>{{ number_format(($val["pve_bill"] * ($val['pve_taxrate'] / 100)),2) }}</td>
-              @if ($val["pve_paid"] == true)
-                <td><i class="fa fa-check-circle text-green"></i></td>
-              @else
-                <td><i class="fa fa-close text-red"></i></td>
-              @endif
-
             </tr>
           @endforeach
         </table>
